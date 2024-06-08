@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>News Classification</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+        textarea {
+            padding: 10px;
+            font-size: 16px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            padding: 10px;
+            font-size: 16px;
+            background-color: #007BFF;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button:disabled {
+            background-color: #007BFF;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #e9ecef;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .examples {
+            margin-top: 20px;
+        }
+        .examples ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        .examples li {
+            margin: 5px 0;
+        }
+        .examples li button {
+            background-color: #f8f9fa;
+            color: #007BFF;
+            border: 1px solid #007BFF;
+            border-radius: 4px;
+            cursor: pointer;
+            padding: 5px 10px;
+            font-size: 14px;
+        }
+        .examples li button:hover {
+            background-color: #007BFF;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>News Classification</h1>
+        <form id="classification-form">
+            <textarea id="text_input" name="text_input" rows="6" placeholder="Enter news text here..."></textarea>
+            <button id="submit-button" type="submit">Classify</button>
+        </form>
+        <div id="result" class="result" style="display: none;"></div>
+
+        <div class="examples">
+            <h2>Example Texts:</h2>
+            <ul>
+                <li><button type="button" onclick="setExampleText('Klub sepakbola Persib Bandung memenangkan liga setelah lama tidak juara.')">Example 1</button></li>
+                <li><button type="button" onclick="setExampleText('Harga daging ayam mengalami kenaikan pesat di pasar, warga mengamuk.')">Example 2</button></li>
+                <li><button type="button" onclick="setExampleText('Sebuah truk menabrak beberapa rumah di daerah kota malang pada dini hari, beberapa orang luka berat.')">Example 3</button></li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('classification-form').addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            const textInput = document.getElementById('text_input').value;
+            const resultDiv = document.getElementById('result');
+            const submitButton = document.getElementById('submit-button');
+
+            // Set button to loading state
+            submitButton.disabled = true;
+            submitButton.textContent = 'Classifying...';
+
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({
+                        'text_input': textInput
+                    })
+                });
+
+                const responseData = await response.json();
+
+                if (responseData.status.code === 200) {
+                    resultDiv.style.display = 'block';
+                    resultDiv.innerHTML = `<strong>Classification Result:</strong> ${responseData.result.join(', ')}`;
+                } else {
+                    resultDiv.style.display = 'block';
+                    resultDiv.innerHTML = `<strong>Error:</strong> ${responseData.status.message}`;
+                }
+            } catch (error) {
+                resultDiv.style.display = 'block';
+                resultDiv.innerHTML = `<strong>Error:</strong> ${error.message}`;
+            } finally {
+                // Reset button state
+                submitButton.disabled = false;
+                submitButton.textContent = 'Classify';
+            }
+        });
+
+        function setExampleText(text) {
+            document.getElementById('text_input').value = text;
+        }
+    </script>
+</body>
+</html>
